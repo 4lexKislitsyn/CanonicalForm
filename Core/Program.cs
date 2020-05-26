@@ -1,6 +1,8 @@
 ﻿using CanonicalForm.Core;
+using Microsoft.Extensions.ObjectPool;
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -10,10 +12,14 @@ namespace CanonicalForm.ConsoleApp
 {
     class Program
     {
-        static CanonicalFormulaFormer _former = new CanonicalFormulaFormer(new RegexFormulaValidator(), new RegexGroupSearcher(), new GroupsDictionaryBuilder(), new GroupsDictionaryRenderer());
+        private static ObjectPool<StringBuilder> _stringBuilderPool;
+        static CanonicalFormulaFormer _former;
 
         static async Task Main(string[] args)
         {
+            var poolProvider = new DefaultObjectPoolProvider();
+            _stringBuilderPool = poolProvider.CreateStringBuilderPool();
+            _former = new CanonicalFormulaFormer(new RegexGroupSearcher(), new GroupsDictionaryBuilder(), new GroupsDictionaryRenderer(_stringBuilderPool));
             if (args.Length > 0)
             {
                 await TransformFiles(args);
@@ -26,8 +32,7 @@ namespace CanonicalForm.ConsoleApp
 
         static async Task TransformFiles(string[] fileNames)
         {
-            Console.WriteLine("File proccessing starts...");
-            var stringBuilder = new StringBuilder();
+            Console.WriteLine("File processing starts...");
             foreach (var path in fileNames.Where(x=> File.Exists(x)))
             {
                 try
@@ -41,34 +46,25 @@ namespace CanonicalForm.ConsoleApp
 
                     var parallelOptions = new ParallelOptions()
                     {
-                        MaxDegreeOfParallelism = lines.Length % 100
+                        MaxDegreeOfParallelism = lines.Length / 3500
                     };
 
                     ConcurrentBag<string> resultCollection = new ConcurrentBag<string>();
                     var parallelResult = Parallel.ForEach(lines, parallelOptions, (formula, state) => resultCollection.Add(_former.Transform(formula)));
                     if (!parallelResult.IsCompleted)
                     {
-                        stringBuilder.Clear().Append("Cannot transform file");
+                        var stringBuilder = _stringBuilderPool.Get();
+                        stringBuilder.Append("Cannot transform file");
                         if (parallelResult.LowestBreakIteration.HasValue && lines.Length > parallelResult.LowestBreakIteration.Value)
                         {
                             stringBuilder.Append("Maybe problem in ").Append(lines[parallelResult.LowestBreakIteration.Value]);
                         }
                         Console.WriteLine(stringBuilder.ToString());
+                        _stringBuilderPool.Return(stringBuilder);
                         continue;
                     }
-
                     var resultPath = Path.Combine(Path.GetDirectoryName(path), Path.GetFileNameWithoutExtension(path) + ".out");
-                    //if (File.Exists(resultPath))
-                    //{
-                    //    Console.WriteLine($"Do you want rewrite file '{resultPath}'? Press PLUS to overwtire.");
-                    //    if (Console.ReadKey().Key != ConsoleKey.OemPlus)
-                    //    {
-                    //        Console.WriteLine($"Please write path to save file:");
-                    //        var newPath = Console.ReadLine();
-                    //        Path.
-                    //    }
-                    //}
-                    await File.WriteAllLinesAsync(resultPath, resultCollection);
+                    await File.WriteAllLinesAsync(resultPath, resultCollection, Encoding.UTF8);
                 }
                 catch (Exception ex)
                 {
@@ -84,6 +80,7 @@ namespace CanonicalForm.ConsoleApp
         {
             while (true)
             {
+                Console.WriteLine("Enter formula:");
                 var formula = Console.ReadLine();
                 Console.WriteLine(_former.Transform(formula) ?? "Invalid formula");
             }

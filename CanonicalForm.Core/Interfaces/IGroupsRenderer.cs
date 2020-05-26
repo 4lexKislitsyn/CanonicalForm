@@ -6,6 +6,6 @@ namespace CanonicalForm.Core.Interfaces
 {
     public interface IGroupsRenderer
     {
-        string Render(IDictionary<string, GroupModel> groups, StringBuilder stringBuilder);
+        string Render(IDictionary<string, GroupModel> groups);
     }
 }

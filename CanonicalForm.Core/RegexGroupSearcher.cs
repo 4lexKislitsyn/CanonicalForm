@@ -75,7 +75,20 @@ namespace CanonicalForm.Core
                 {
                     maxPower = power;
                 }
-                variables.Add(name, new VariableInfo(name, power));
+                if (variables.ContainsKey(name))
+                {
+                    var variable = variables[name];
+                    variable.Power += power;
+                    if (variable.Power > maxPower)
+                    {
+                        maxPower = variable.Power;
+                    }
+                    variables[name] = variable;
+                }
+                else
+                {
+                    variables.Add(name, new VariableInfo(name, power));
+                }
             }
             return (string.Join("", variables.Values), maxPower);
         }
