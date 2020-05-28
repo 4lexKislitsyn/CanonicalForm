@@ -1,4 +1,7 @@
 ﻿using CanonicalForm.Core;
+using CanonicalForm.Core.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
 using System;
 using System.Collections.Concurrent;
@@ -12,14 +15,12 @@ namespace CanonicalForm.ConsoleApp
 {
     class Program
     {
-        private static ObjectPool<StringBuilder> _stringBuilderPool;
-        private static CanonicalFormulaFormer _former;
+        private static IServiceProvider _provider;
 
         static async Task Main(string[] args)
         {
-            var poolProvider = new DefaultObjectPoolProvider();
-            _stringBuilderPool = poolProvider.CreateStringBuilderPool();
-            _former = new CanonicalFormulaFormer(new CompositeRegexGroupSearcher(_stringBuilderPool), new GroupsDictionaryBuilder(), new GroupsDictionaryRenderer(_stringBuilderPool));
+            _provider = ConfigureDependencyInjection();
+
             if (args.Length > 0)
             {
                 await TransformFiles(args);
@@ -33,6 +34,7 @@ namespace CanonicalForm.ConsoleApp
         static async Task TransformFiles(string[] fileNames)
         {
             Console.WriteLine("File processing starts...");
+            var former = _provider.GetRequiredService<CanonicalFormulaFormer>();
             foreach (var path in fileNames.Where(x=> File.Exists(x)))
             {
                 try
@@ -50,17 +52,18 @@ namespace CanonicalForm.ConsoleApp
                     };
 
                     ConcurrentBag<string> resultCollection = new ConcurrentBag<string>();
-                    var parallelResult = Parallel.ForEach(lines, parallelOptions, (formula, state) => resultCollection.Add(_former.Transform(formula)));
+                    var parallelResult = Parallel.ForEach(lines, parallelOptions, (formula, state) => resultCollection.Add(former.Transform(formula)));
                     if (!parallelResult.IsCompleted)
                     {
-                        var stringBuilder = _stringBuilderPool.Get();
+                        var pool = _provider.GetRequiredService<ObjectPool<StringBuilder>>();
+                        var stringBuilder = pool.Get();
                         stringBuilder.Append("Cannot transform file");
                         if (parallelResult.LowestBreakIteration.HasValue && lines.Length > parallelResult.LowestBreakIteration.Value)
                         {
                             stringBuilder.Append("Maybe problem in ").Append(lines[parallelResult.LowestBreakIteration.Value]);
                         }
                         Console.WriteLine(stringBuilder.ToString());
-                        _stringBuilderPool.Return(stringBuilder);
+                        pool.Return(stringBuilder);
                         continue;
                     }
                     var resultPath = Path.Combine(Path.GetDirectoryName(path), Path.GetFileNameWithoutExtension(path) + ".out");
@@ -78,12 +81,33 @@ namespace CanonicalForm.ConsoleApp
 
         static void InteractiveTransform()
         {
+            var former = _provider.GetRequiredService<CanonicalFormulaFormer>();
             while (true)
             {
                 Console.WriteLine("Enter formula:");
                 var formula = Console.ReadLine();
-                Console.WriteLine(_former.Transform(formula) ?? "Invalid formula");
+                Console.WriteLine(former.Transform(formula) ?? "Invalid formula");
             }
+        }
+
+        static IServiceProvider ConfigureDependencyInjection()
+        {
+            var services = new ServiceCollection();
+
+            services.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
+            services.TryAddSingleton<ObjectPool<StringBuilder>>(provider =>
+            {
+                var poolProvider = provider.GetRequiredService<ObjectPoolProvider>();
+                return poolProvider.Create(new StringBuilderPooledObjectPolicy());
+            });
+
+            services.AddTransient<IGroupsSearcher, CompositeRegexGroupSearcher>();
+            services.AddTransient<IGroupsDictionaryBuilder, GroupsDictionaryBuilder>();
+            services.AddTransient<IGroupsRenderer, GroupsDictionaryRenderer>();
+
+            services.AddSingleton<CanonicalFormulaFormer>();
+
+            return services.BuildServiceProvider(true);
         }
     }
 }
