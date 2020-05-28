@@ -27,8 +27,12 @@ namespace CanonicalForm.Core
         /// <inheritdoc/>
         public IEnumerable<GroupModel> SearchGroups(string validatedFormula)
         {
-            var transformedFormula = _remover.RemoveParenthesis(validatedFormula);
-            if (!Validate(validatedFormula) || (_searcher as IFormulaValidator)?.Validate(transformedFormula) == false)
+            if (!Validate(validatedFormula))
+            {
+                throw new InvalidFormulaException(validatedFormula);
+            }
+            var transformedFormula = string.Join("=", validatedFormula.Split('=').Select(_remover.RemoveParenthesis));
+            if ((_searcher as IFormulaValidator)?.Validate(transformedFormula) == false)
             {
                 throw new InvalidFormulaException(validatedFormula);
             }
