@@ -35,6 +35,8 @@ namespace CanonicalForm.Core
             return _searcher.SearchGroups(transformedFormula);
         }
         /// <inheritdoc/>
-        public bool Validate(string formula) => !string.IsNullOrWhiteSpace(formula) && formula.Split('=').Length == 2;
+        public bool Validate(string formula) => !string.IsNullOrWhiteSpace(formula) 
+            && formula.Split('=').Length == 2 
+            && formula.Count(x=> x =='(') == formula.Count(x => x == ')');
     }
 }

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "CanonicalForm.ConsoleApp": {
+      "commandName": "Project",
+      "commandLineArgs": ""
+    }
+  }
+}

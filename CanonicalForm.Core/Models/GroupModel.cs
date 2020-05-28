@@ -9,7 +9,7 @@ namespace CanonicalForm.Core.Models
         /// <summary>
         /// Max power of the inner variables.
         /// </summary>
-        public uint MaxPower { get; set; }
+        public int MaxPower { get; set; }
         /// <summary>
         /// Expression of the variable.
         /// </summary>

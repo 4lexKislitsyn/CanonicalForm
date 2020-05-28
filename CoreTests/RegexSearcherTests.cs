@@ -1,40 +1,97 @@
 using CanonicalForm.Core;
+using Microsoft.Extensions.ObjectPool;
 using NUnit.Framework;
 using System;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace CoreTests
 {
     public class RegexSearcherTests
     {
+        private RegexGroupSearcher searcher;
+
         [SetUp]
-        public void Setup()
+        public void InintSearcher()
         {
+            searcher = new RegexGroupSearcher();
         }
 
         [Test]
-        public void NullValidatedString()
+        public void NullString_ThrowsInvalidFormulaException()
         {
-            var searcher = new RegexGroupSearcher();
-            Assert.Throws<ArgumentNullException>(() => searcher.SearchGroups(null), "Null is invalid formula.");
+            Assert.Throws<InvalidFormulaException>(() => searcher.SearchGroups(null).ToArray());
+        }
+        [Test]
+        public void EmptyString_ThrowsInvalidFormulaException()
+        {
+            Assert.Throws<InvalidFormulaException>(() => searcher.SearchGroups(string.Empty).ToArray());
         }
 
         [Test]
-        [TestCase("x^2 + 3.5xy + y = y^2 - xy + y", 6)]
-        [TestCase("x^3 + x^2y + xy^2 + 3.5xy + y = y^2 - xy + y", 8)]
+        public void WhitespaceString_ThrowsInvalidFormulaException()
+        {
+            Assert.Throws<InvalidFormulaException>(() => searcher.SearchGroups(" ").ToArray());
+        }
+
+        [Test]
+        public void NoEqualSign_ThrowsInvalidFormulaException()
+        {
+            Assert.Throws<InvalidFormulaException>(() => searcher.SearchGroups("x+y").ToArray());
+        }
+
+        [Test]
+        public void MultipleEqualSigns_ThrowsInvalidFormulaException()
+        {
+            Assert.Throws<InvalidFormulaException>(() => searcher.SearchGroups("x=y=z").ToArray());
+        }
+
+        [Test]
+        public void LeadingZeroPower_DoesntThrowsException()
+        {
+            var groups = searcher.SearchGroups("x^01=x").ToArray();
+            Assert.AreEqual(2, groups.Length);
+            Assert.IsTrue(groups.All(z => z.Variable == "x" && z.MaxPower == 1));
+        }
+
+        [TestCase("x=y")]
+        [TestCase("x^0=y")]
+        [TestCase("x=y^-1")]
+        [TestCase("x=y^-1")]
+        [TestCase("x^01=y")]
+        [TestCase("x^1=y^1")]
+        public void ValidFormula_DoesntThrowException(string formula)
+        {
+            Assert.DoesNotThrow(() => searcher.SearchGroups(formula).ToArray());
+        }
+
+        [TestCase("x=x", -1)]
+        [TestCase("x=-x", 1)]
+        public void RightSideVaribleTransfer_ChangeSign(string formula, int factor)
+        {
+            var groups = searcher.SearchGroups(formula).ToArray();
+            Assert.AreEqual(2, groups.Length);
+            Assert.AreEqual(factor, groups[1].Factor);
+            Assert.AreEqual(factor, groups[1].Factor);
+        }
+
+        [Test]
+        public void NillPower_ShouldBeTrimmed()
+        {
+            var groups = searcher.SearchGroups("x^0=y^0").ToArray();
+            Assert.AreEqual(2, groups.Length);
+            Assert.IsTrue(groups.All(x => x.Variable == string.Empty));
+            Assert.AreEqual(0, groups.Sum(x => x.Factor));
+        }
+
+        [Test]
+        [TestCase("-x^2 + 3.5xy + y = y^2 - xy + y", 6)]
+        [TestCase("x^3- x^2y +x^-1y^2 + 3.5xy+y=y^2-xy+y", 8)]
         public void GetValidGroups(string formula, int groupsCount)
         {
-            var searcher = new RegexGroupSearcher();
             var result = searcher.SearchGroups(formula).ToArray();
             Assert.AreEqual(groupsCount, result.Length);
-        }
-
-        [Test]
-        [TestCase("x^2x")]
-        public void InvalidFormula(string formula)
-        {
-            var searcher = new RegexGroupSearcher();
-            searcher.SearchGroups(formula).ToArray();
         }
     }
 }

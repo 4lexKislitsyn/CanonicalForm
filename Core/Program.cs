@@ -23,11 +23,11 @@ namespace CanonicalForm.ConsoleApp
         static async Task Main(string[] args)
         {
             _provider = ConfigureDependencyInjection();
-            _cancelationTokenSource = new CancellationTokenSource();
-            Console.CancelKeyPress += Console_CancelKeyPress;
 
             if (args.Length > 0)
             {
+                _cancelationTokenSource = new CancellationTokenSource();
+                Console.CancelKeyPress += Console_CancelKeyPress;
                 await TransformFiles(args);
             }
             else

@@ -35,6 +35,10 @@ namespace CanonicalForm.Core
                 var factor = item.Groups["factor"].Success ? double.Parse(item.Groups["factor"].Value.Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture) : 1;
                 switch (operatorValue)
                 {
+                    case "=-":
+                        sign = -1;
+                        break;
+                    case "=+":
                     case "=":
                         sign = -1; 
                         factor = -factor;
@@ -71,14 +75,14 @@ namespace CanonicalForm.Core
         /// </summary>
         /// <param name="variablesMatch"></param>
         /// <returns></returns>
-        private (string variable, uint maxPower) GenerateVariable(MatchCollection variablesMatch)
+        private (string variable, int maxPower) GenerateVariable(MatchCollection variablesMatch)
         {
             var variables = new SortedList<string, VariableInfo>(variablesMatch.Count);
-            var maxPower = uint.MinValue;
+            var maxPower = int.MinValue;
             foreach (Match item in variablesMatch)
             {
-                var name = item.Groups["variable"].Value;
-                var power = item.Groups["pow"].Success ? uint.Parse(item.Groups["pow"].Value) : 1;
+                var power = item.Groups["pow"].Success ? int.Parse(item.Groups["pow"].Value) : 1;
+                var name = power == 0 ? string.Empty : item.Groups["variable"].Value;
                 if (power > maxPower)
                 {
                     maxPower = power;
@@ -104,14 +108,14 @@ namespace CanonicalForm.Core
         struct VariableInfo : IComparable<VariableInfo>
         {
             public string Name;
-            public uint Power;
+            public int Power;
 
             /// <summary>
             /// Create an instance of variable in expression.
             /// </summary>
             /// <param name="name">Name of the variable.</param>
             /// <param name="power">Power of the variable.</param>
-            public VariableInfo(string name, uint power)
+            public VariableInfo(string name, int power)
             {
                 Name = name;
                 Power = power;
