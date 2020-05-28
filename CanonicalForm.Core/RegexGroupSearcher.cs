@@ -60,7 +60,7 @@ namespace CanonicalForm.Core
 
         public bool Validate(string formula)
         {
-            return !string.IsNullOrWhiteSpace(formula) && _lineFormulaRegex.IsMatch(formula);
+            return !string.IsNullOrWhiteSpace(formula) && formula.Split('=').Length == 2 && _lineFormulaRegex.IsMatch(formula);
         }
 
         private (string variable, uint maxPower) GenerateVariable(MatchCollection variablesMatch)
