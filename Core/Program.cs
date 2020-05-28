@@ -135,7 +135,11 @@ namespace CanonicalForm.ConsoleApp
                 return poolProvider.Create(new StringBuilderPooledObjectPolicy());
             });
 
-            services.AddTransient<IGroupsSearcher, CompositeRegexGroupSearcher>();
+            services.AddTransient<IParenthesisRemover, SimpleParenthesisRemover>();
+            services.AddTransient<IGroupsSearcher, CompositeGroupSearcher>(provider =>
+            {
+                return new CompositeGroupSearcher(provider.GetRequiredService<IParenthesisRemover>(), new RegexGroupSearcher());
+            });
             services.AddTransient<IGroupsRenderer, GroupsRenderer>();
 
             services.AddSingleton<CanonicalFormulaFormer>();

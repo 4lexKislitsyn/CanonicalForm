@@ -7,6 +7,11 @@ namespace CanonicalForm.Core.Interfaces
 {
     public interface IGroupsSearcher
     {
+        /// <summary>
+        /// Search expressions in formula.
+        /// </summary>
+        /// <param name="validatedFormula"></param>
+        /// <returns></returns>
         IEnumerable<GroupModel> SearchGroups(string validatedFormula);
     }
 }

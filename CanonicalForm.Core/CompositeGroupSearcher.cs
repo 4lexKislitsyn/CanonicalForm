@@ -9,29 +9,32 @@ using System.Text.RegularExpressions;
 
 namespace CanonicalForm.Core
 {
-    public class CompositeRegexGroupSearcher : IGroupsSearcher, IFormulaValidator
+    public class CompositeGroupSearcher : IGroupsSearcher, IFormulaValidator
     {
-        private readonly ObjectPool<StringBuilder> _pool;
-        private readonly ParenthesisRemover _remover;
-        private readonly RegexGroupSearcher _searcher;
+        private readonly IParenthesisRemover _remover;
+        private readonly IGroupsSearcher _searcher;
 
-        public CompositeRegexGroupSearcher(ObjectPool<StringBuilder> pool)
+        /// <summary>
+        /// Create an instance of class <see cref="CompositeGroupSearcher"/>.
+        /// </summary>
+        /// <param name="remover"></param>
+        /// <param name="searcher"></param>
+        public CompositeGroupSearcher(IParenthesisRemover remover, IGroupsSearcher searcher)
         {
-            _pool = pool;
-            _remover = new ParenthesisRemover(_pool);
-            _searcher = new RegexGroupSearcher();
+            _remover = remover;
+            _searcher = searcher;
         }
-
+        /// <inheritdoc/>
         public IEnumerable<GroupModel> SearchGroups(string validatedFormula)
         {
             var transformedFormula = _remover.RemoveParenthesis(validatedFormula);
-            if (!_searcher.Validate(transformedFormula))
+            if (!Validate(validatedFormula) || (_searcher as IFormulaValidator)?.Validate(transformedFormula) == false)
             {
                 throw new InvalidFormulaException(validatedFormula);
             }
             return _searcher.SearchGroups(transformedFormula);
         }
-
+        /// <inheritdoc/>
         public bool Validate(string formula) => !string.IsNullOrWhiteSpace(formula) && formula.Split('=').Length == 2;
     }
 }

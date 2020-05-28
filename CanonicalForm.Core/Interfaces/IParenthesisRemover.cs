@@ -4,13 +4,13 @@ using System.Text;
 
 namespace CanonicalForm.Core.Interfaces
 {
-    public interface IFormulaValidator
+    public interface IParenthesisRemover
     {
         /// <summary>
-        /// Check is formula valid.
+        /// Remove parenthesis from formula.
         /// </summary>
         /// <param name="formula"></param>
         /// <returns></returns>
-        bool Validate(string formula);
+        string RemoveParenthesis(string formula);
     }
 }

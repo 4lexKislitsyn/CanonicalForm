@@ -1,15 +1,16 @@
-﻿using Microsoft.Extensions.ObjectPool;
+﻿using CanonicalForm.Core.Interfaces;
+using Microsoft.Extensions.ObjectPool;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace CanonicalForm.Core
 {
-    internal class ParenthesisRemover
+    public class SimpleParenthesisRemover: IParenthesisRemover
     {
         private readonly ObjectPool<StringBuilder> _pool;
 
-        public ParenthesisRemover(ObjectPool<StringBuilder> pool)
+        public SimpleParenthesisRemover(ObjectPool<StringBuilder> pool)
         {
             _pool = pool;
         }
