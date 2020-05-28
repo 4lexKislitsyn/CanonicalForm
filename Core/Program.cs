@@ -15,6 +15,7 @@ namespace CanonicalForm.ConsoleApp
 {
     class Program
     {
+        private const int OptimalLinesPerTask = 3500;
         private static IServiceProvider _provider;
 
         static async Task Main(string[] args)
@@ -48,11 +49,25 @@ namespace CanonicalForm.ConsoleApp
 
                     var parallelOptions = new ParallelOptions()
                     {
-                        MaxDegreeOfParallelism = lines.Length / 3500
+                        MaxDegreeOfParallelism = Math.Max(lines.Length / OptimalLinesPerTask, 1)
                     };
 
-                    ConcurrentBag<string> resultCollection = new ConcurrentBag<string>();
-                    var parallelResult = Parallel.ForEach(lines, parallelOptions, (formula, state) => resultCollection.Add(former.Transform(formula)));
+                    var resultCollection = new string[lines.Length];
+                    var parallelResult = Parallel.ForEach(lines, parallelOptions, (formula, state, index) => 
+                    {
+                        try
+                        {
+                            resultCollection[index] = former.Transform(formula) ?? "Invalid formula";
+                        }
+                        catch (InvalidFormulaException ex)
+                        {
+                            resultCollection[index] = ex.Message;
+                        }
+                        catch (Exception ex)
+                        {
+                            resultCollection[index] = $"Cannot operate formula: {ex.Message}";
+                        }
+                    });
                     if (!parallelResult.IsCompleted)
                     {
                         var pool = _provider.GetRequiredService<ObjectPool<StringBuilder>>();

@@ -16,9 +16,9 @@ namespace CanonicalForm.Core
 
         public IEnumerable<GroupModel> SearchGroups(string validatedFormula)
         {
-            if (validatedFormula is null)
+            if (!Validate(validatedFormula))
             {
-                throw new ArgumentNullException(nameof(validatedFormula));
+                throw new InvalidFormulaException(validatedFormula);
             }
             var result = _groupsRegex.Matches(validatedFormula);
             var sign = 1;

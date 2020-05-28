@@ -23,14 +23,14 @@ namespace CanonicalForm.Core
 
         public IEnumerable<GroupModel> SearchGroups(string validatedFormula)
         {
-            validatedFormula = _remover.RemoveParenthesis(validatedFormula);
-            if (!_searcher.Validate(validatedFormula))
+            var transformedFormula = _remover.RemoveParenthesis(validatedFormula);
+            if (!_searcher.Validate(transformedFormula))
             {
-                throw new Exception("Invalid formula");
+                throw new InvalidFormulaException(validatedFormula);
             }
-            return _searcher.SearchGroups(validatedFormula);
+            return _searcher.SearchGroups(transformedFormula);
         }
 
-        public bool Validate(string formula) => _searcher.Validate(formula);
+        public bool Validate(string formula) => !string.IsNullOrWhiteSpace(formula) && formula.Split('=').Length == 2;
     }
 }

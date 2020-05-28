@@ -30,7 +30,7 @@ namespace CanonicalForm.Core
             }
 
             var groupsDictionary = _builder.Build(_groupsSearcher.SearchGroups(formula));
-            return _renderer.Render(groupsDictionary);
+            return _renderer.Render(groupsDictionary) ?? "Cannot render formula";
         }
     }
 }
