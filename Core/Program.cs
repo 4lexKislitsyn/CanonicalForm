@@ -13,13 +13,13 @@ namespace CanonicalForm.ConsoleApp
     class Program
     {
         private static ObjectPool<StringBuilder> _stringBuilderPool;
-        static CanonicalFormulaFormer _former;
+        private static CanonicalFormulaFormer _former;
 
         static async Task Main(string[] args)
         {
             var poolProvider = new DefaultObjectPoolProvider();
             _stringBuilderPool = poolProvider.CreateStringBuilderPool();
-            _former = new CanonicalFormulaFormer(new RegexGroupSearcher(), new GroupsDictionaryBuilder(), new GroupsDictionaryRenderer(_stringBuilderPool));
+            _former = new CanonicalFormulaFormer(new CompositeRegexGroupSearcher(_stringBuilderPool), new GroupsDictionaryBuilder(), new GroupsDictionaryRenderer(_stringBuilderPool));
             if (args.Length > 0)
             {
                 await TransformFiles(args);
