@@ -1,4 +1,5 @@
 ﻿using CanonicalForm.Core.Interfaces;
+using CanonicalForm.Core.Models;
 using Microsoft.Extensions.ObjectPool;
 using System;
 using System.Collections.Generic;

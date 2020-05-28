@@ -4,40 +4,34 @@ using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 using Microsoft.Extensions.ObjectPool;
+using CanonicalForm.Core.Models;
 
 namespace CanonicalForm.Core
 {
-    public class GroupsDictionaryRenderer : IGroupsRenderer
+    public class GroupsRenderer : IGroupsRenderer
     {
         private readonly ObjectPool<StringBuilder> _pool;
 
-        public GroupsDictionaryRenderer(ObjectPool<StringBuilder> pool)
+        public GroupsRenderer(ObjectPool<StringBuilder> pool)
         {
             _pool = pool;
         }
 
-        public string Render(IDictionary<string, GroupModel> groups)
+        public string Render(IEnumerable<GroupModel> groups)
         {
             var builder = _pool.Get();
             try
             {
-                foreach (var item in groups.Values.OrderByDescending(x => x.Power))
+                var aggregatedGroups = groups.GroupBy(x => x.Variable).Select(x => new GroupModel
                 {
-                    if (item.Factor == 0)
-                    {
-                        continue;
-                    }
-
-                    if (item.Factor > 0)
-                    {
-                        builder.Append('+');
-                    }
-                    else
-                    {
-                        builder.Append('-');
-                    }
-                    builder.Append(' ');
-
+                    Variable = x.Key,
+                    Factor = x.Sum(z => z.Factor),
+                    // MaxPower always same for expression
+                    MaxPower = x.First().MaxPower
+                }).Where(x=> x.Factor != 0).OrderByDescending(x => x.MaxPower).ToArray();
+                foreach (var item in aggregatedGroups)
+                {
+                    builder.Append(item.Factor > 0 ? '+' : '-').Append(' ');
                     if (item.Factor != 1 && item.Factor != -1)
                     {
                         builder.Append(item.Factor.ToString("0.##;0.##;0", System.Globalization.CultureInfo.InvariantCulture));

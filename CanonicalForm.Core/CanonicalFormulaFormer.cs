@@ -10,14 +10,11 @@ namespace CanonicalForm.Core
     public class CanonicalFormulaFormer
     {
         private readonly IGroupsSearcher _groupsSearcher;
-        private readonly IGroupsDictionaryBuilder _builder;
         private readonly IGroupsRenderer _renderer;
 
-        public CanonicalFormulaFormer(IGroupsSearcher groupsSearcher, 
-            IGroupsDictionaryBuilder builder, IGroupsRenderer renderer)
+        public CanonicalFormulaFormer(IGroupsSearcher groupsSearcher, IGroupsRenderer renderer)
         {
             _groupsSearcher = groupsSearcher ?? throw new ArgumentNullException(nameof(groupsSearcher));
-            _builder = builder ?? throw new ArgumentNullException(nameof(builder));
             _renderer = renderer ?? throw new ArgumentNullException(nameof(renderer));
         }
 
@@ -29,8 +26,8 @@ namespace CanonicalForm.Core
                 return null;
             }
 
-            var groupsDictionary = _builder.Build(_groupsSearcher.SearchGroups(formula));
-            return _renderer.Render(groupsDictionary) ?? "Cannot render formula";
+            var groups = _groupsSearcher.SearchGroups(formula);
+            return _renderer.Render(groups) ?? "Cannot render formula";
         }
     }
 }

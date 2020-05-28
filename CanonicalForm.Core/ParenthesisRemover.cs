@@ -13,6 +13,7 @@ namespace CanonicalForm.Core
         {
             _pool = pool;
         }
+
         public string RemoveParenthesis(string formula)
         {
             var stack = new Stack<int>();

@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CanonicalForm.ConsoleApp
@@ -17,10 +18,13 @@ namespace CanonicalForm.ConsoleApp
     {
         private const int OptimalLinesPerTask = 3500;
         private static IServiceProvider _provider;
+        private static CancellationTokenSource _cancelationTokenSource;
 
         static async Task Main(string[] args)
         {
             _provider = ConfigureDependencyInjection();
+            _cancelationTokenSource = new CancellationTokenSource();
+            Console.CancelKeyPress += Console_CancelKeyPress;
 
             if (args.Length > 0)
             {
@@ -32,7 +36,13 @@ namespace CanonicalForm.ConsoleApp
             }
         }
 
-        static async Task TransformFiles(string[] fileNames)
+        private static void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
+        {
+            e.Cancel = true;
+            _cancelationTokenSource.Cancel();
+        }
+
+        private static async Task TransformFiles(string[] fileNames)
         {
             Console.WriteLine("File processing starts...");
             var former = _provider.GetRequiredService<CanonicalFormulaFormer>();
@@ -40,7 +50,7 @@ namespace CanonicalForm.ConsoleApp
             {
                 try
                 {
-                    var lines = await File.ReadAllLinesAsync(path);
+                    var lines = await File.ReadAllLinesAsync(path, _cancelationTokenSource.Token);
                     if (lines.Length == 0)
                     {
                         Console.WriteLine($"File '{path}' is empty.");
@@ -49,7 +59,8 @@ namespace CanonicalForm.ConsoleApp
 
                     var parallelOptions = new ParallelOptions()
                     {
-                        MaxDegreeOfParallelism = Math.Max(lines.Length / OptimalLinesPerTask, 1)
+                        MaxDegreeOfParallelism = Math.Max(lines.Length / OptimalLinesPerTask, 1),
+                        CancellationToken = _cancelationTokenSource.Token
                     };
 
                     var resultCollection = new string[lines.Length];
@@ -82,7 +93,12 @@ namespace CanonicalForm.ConsoleApp
                         continue;
                     }
                     var resultPath = Path.Combine(Path.GetDirectoryName(path), Path.GetFileNameWithoutExtension(path) + ".out");
-                    await File.WriteAllLinesAsync(resultPath, resultCollection, Encoding.UTF8);
+                    await File.WriteAllLinesAsync(resultPath, resultCollection, Encoding.UTF8, _cancelationTokenSource.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    Console.WriteLine($"Files operating was canceled.");
+                    break;
                 }
                 catch (Exception ex)
                 {
@@ -90,11 +106,14 @@ namespace CanonicalForm.ConsoleApp
                 }
             }
 
-            Console.WriteLine("Press any key for exit...");
-            Console.ReadKey();
+            if (!_cancelationTokenSource.IsCancellationRequested)
+            {
+                Console.WriteLine("Press any key for exit...");
+                Console.ReadKey();
+            }
         }
 
-        static void InteractiveTransform()
+        private static void InteractiveTransform()
         {
             var former = _provider.GetRequiredService<CanonicalFormulaFormer>();
             while (true)
@@ -105,7 +124,7 @@ namespace CanonicalForm.ConsoleApp
             }
         }
 
-        static IServiceProvider ConfigureDependencyInjection()
+        private static IServiceProvider ConfigureDependencyInjection()
         {
             var services = new ServiceCollection();
 
@@ -117,8 +136,7 @@ namespace CanonicalForm.ConsoleApp
             });
 
             services.AddTransient<IGroupsSearcher, CompositeRegexGroupSearcher>();
-            services.AddTransient<IGroupsDictionaryBuilder, GroupsDictionaryBuilder>();
-            services.AddTransient<IGroupsRenderer, GroupsDictionaryRenderer>();
+            services.AddTransient<IGroupsRenderer, GroupsRenderer>();
 
             services.AddSingleton<CanonicalFormulaFormer>();
 

@@ -5,6 +5,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Linq;
+using CanonicalForm.Core.Models;
 
 namespace CanonicalForm.Core
 {
@@ -14,6 +15,7 @@ namespace CanonicalForm.Core
         private Regex _variableRegex = new Regex(Constants.VariableRegexPattern);
         private Regex _lineFormulaRegex = new Regex($"^({Constants.GroupRegexPattern})+$");
 
+        ///<inheritdoc/>
         public IEnumerable<GroupModel> SearchGroups(string validatedFormula)
         {
             if (!Validate(validatedFormula))
@@ -52,17 +54,23 @@ namespace CanonicalForm.Core
                 yield return new GroupModel
                 {
                     Variable = variable,
-                    Power = power,
+                    MaxPower = power,
                     Factor = factor,
                 };
             }
         }
 
+        ///<inheritdoc/>
         public bool Validate(string formula)
         {
             return !string.IsNullOrWhiteSpace(formula) && formula.Split('=').Length == 2 && _lineFormulaRegex.IsMatch(formula);
         }
 
+        /// <summary>
+        /// Get sorted expressions and max power of the inner variables.
+        /// </summary>
+        /// <param name="variablesMatch"></param>
+        /// <returns></returns>
         private (string variable, uint maxPower) GenerateVariable(MatchCollection variablesMatch)
         {
             var variables = new SortedList<string, VariableInfo>(variablesMatch.Count);
@@ -98,12 +106,18 @@ namespace CanonicalForm.Core
             public string Name;
             public uint Power;
 
+            /// <summary>
+            /// Create an instance of variable in expression.
+            /// </summary>
+            /// <param name="name">Name of the variable.</param>
+            /// <param name="power">Power of the variable.</param>
             public VariableInfo(string name, uint power)
             {
                 Name = name;
                 Power = power;
             }
 
+            ///<inheritdoc/>
             public int CompareTo(VariableInfo other)
                 => Name.CompareTo(other.Name);
 
