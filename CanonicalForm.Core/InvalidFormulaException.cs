@@ -7,12 +7,12 @@ namespace CanonicalForm.Core
     public class InvalidFormulaException : Exception
     {
         public InvalidFormulaException(string formula)
-            : base($"Formula '{formula ?? "null"}' is invalid formula.")
+            : base($"Formula is invalid.")
         {
             Formula = formula;
         }
         public InvalidFormulaException(string formula, string reason)
-            : base($"Formula '{formula ?? "null"}' is invalid formula : {reason}.")
+            : base($"Formula is invalid : {reason}.")
         {
             Formula = formula;
         }

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace CanonicalForm.Core
 {
@@ -18,15 +19,23 @@ namespace CanonicalForm.Core
             _renderer = renderer ?? throw new ArgumentNullException(nameof(renderer));
         }
 
-        public string Transform(string formula)
+        /// <summary>
+        /// Transform formula to canonical form.
+        /// </summary>
+        /// <param name="formula"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidFormulaException"><see cref="IExpressionSearcher"/> cannot form groups collection or render groups that were found.</exception>
+        public string Transform(string formula, bool optimize = true)
         {
-            if (_groupsSearcher is IFormulaValidator validator && !validator.Validate(formula))
+            if (optimize && _groupsSearcher is IFormulaValidator validator && !validator.Validate(formula))
             {
+                // it is faster than catch exception.
                 return null;
             }
 
-            var groups = _groupsSearcher.SearchGroups(formula);
-            return _renderer.Render(groups) ?? "Cannot render formula";
+            var groups = _groupsSearcher.SearchGroups(formula)
+                ?? throw new InvalidFormulaException(formula, "cannot find variable's expressions");
+            return _renderer.Render(groups) ?? throw new InvalidFormulaException(formula, "cannot render formula");
         }
     }
 }

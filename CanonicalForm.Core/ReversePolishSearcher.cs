@@ -80,6 +80,10 @@ namespace CanonicalForm.Core
                     {
                         ApplyOperator(tempOperator);
                         //polandResult.Add(tempOperator.ToString());
+                        if (operatorsStack.Count == 0)
+                        {
+                            throw new InvalidFormulaException(validatedFormula, "has parenthesis that wasn't opened");
+                        }
                     }
                 }
 

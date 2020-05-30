@@ -120,7 +120,18 @@ namespace CanonicalForm.ConsoleApp
             {
                 Console.WriteLine("Enter formula:");
                 var formula = Console.ReadLine();
-                Console.WriteLine(former.Transform(formula) ?? "Invalid formula");
+                try
+                {
+                    var transfromed = former.Transform(formula, false);
+                    Console.WriteLine(transfromed);
+                }
+                catch (InvalidFormulaException ex)
+                {
+                    var color = Console.ForegroundColor;
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine(ex.Message);
+                    Console.ForegroundColor = color;
+                }
             }
         }
 
