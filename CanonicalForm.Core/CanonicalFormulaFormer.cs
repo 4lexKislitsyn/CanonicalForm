@@ -20,7 +20,6 @@ namespace CanonicalForm.Core
 
         public string Transform(string formula)
         {
-            formula = formula.Trim();
             if (_groupsSearcher is IFormulaValidator validator && !validator.Validate(formula))
             {
                 return null;

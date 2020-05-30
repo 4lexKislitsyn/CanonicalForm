@@ -8,21 +8,33 @@ using CanonicalForm.Core.Models;
 
 namespace CanonicalForm.Core
 {
+    /// <summary>
+    /// Class that provides method to group and render expressions of formula.
+    /// </summary>
     public class GroupsRenderer : IExpressionsRenderer
     {
         private readonly ObjectPool<StringBuilder> _pool;
 
+        /// <summary>
+        /// Create an instance of <see cref="GroupsRenderer"/>.
+        /// </summary>
+        /// <param name="pool"></param>
         public GroupsRenderer(ObjectPool<StringBuilder> pool)
         {
             _pool = pool;
         }
 
-        public string Render(IEnumerable<VariablesExpression> groups)
+        /// <inheritdoc/>
+        public string Render(IEnumerable<VariablesExpression> expressions)
         {
+            if (expressions is null)
+            {
+                throw new ArgumentNullException(nameof(expressions));
+            }
             var builder = _pool.Get();
             try
             {
-                var aggregatedGroups = groups.GroupBy(x => x.Variable).Select(x => new VariablesExpression
+                var aggregatedGroups = expressions.GroupBy(x => x.Variable).Select(x => new VariablesExpression
                 {
                     Variable = x.Key,
                     Factor = x.Sum(z => z.Factor),

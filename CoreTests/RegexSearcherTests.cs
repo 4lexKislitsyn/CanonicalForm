@@ -1,4 +1,5 @@
 using CanonicalForm.Core;
+using CanonicalForm.Core.Interfaces;
 using Microsoft.Extensions.ObjectPool;
 using NUnit.Framework;
 using System;
@@ -10,12 +11,13 @@ namespace CoreTests
 {
     public class RegexSearcherTests
     {
-        private RegexGroupSearcher searcher;
+        private IExpressionSearcher searcher;
 
         [SetUp]
         public void InintSearcher()
         {
-            searcher = new RegexGroupSearcher();
+            //searcher = new ReversePolishSearcher(Extensions.CreatePool(), new RegexExpressionsFactory());
+            searcher = new RegexGroupSearcher(new RegexVariableExpressionFactory());
         }
 
         [Test]

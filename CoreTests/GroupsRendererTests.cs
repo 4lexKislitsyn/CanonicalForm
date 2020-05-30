@@ -29,13 +29,50 @@ namespace CoreTests
         [TestCase(new int[] { 0, 1 })]
         public void MultipleEmptyVaribales_ShouldBeCombined(int[] factors)
         {
-            var random = new Randomizer(DateTime.UtcNow.Minute);
-            var groups = factors.Select(x=> new GroupModel { Factor = x, Variable = string.Empty });
+            var groups = factors.Select(x=> new VariablesExpression { Factor = x, Variable = string.Empty });
             var result = RenderWithBaseAsserts(groups);
             Assert.AreEqual($"{groups.Sum(x => x.Factor)}=0", result);
         }
 
-        private string RenderWithBaseAsserts(IEnumerable<GroupModel> groups)
+        [Test]
+        public void NullCollection_ThrowsArgumentNullException()
+        {
+            Assert.Throws<ArgumentNullException>(() => renderer.Render(null));
+        }
+
+        [Test]
+        public void SameVariable_ShoudleBeCombined()
+        {
+            var groups = new[]
+            {
+                new VariablesExpression{ Factor = 1, Variable = "x"  },
+                new VariablesExpression{ Factor = 3, Variable = "x"  }
+            };
+            Assert.AreEqual("4x=0", RenderWithBaseAsserts(groups));
+        }
+
+        [Test]
+        public void NillFactor_ShouldBeRemoved()
+        {
+            var groups = new[]
+            {
+                new VariablesExpression{ Factor = 0, Variable = "x"  },
+            };
+            Assert.AreEqual("0=0", RenderWithBaseAsserts(groups));
+        }
+
+        [Test]
+        public void NillSumFactor_ShouldbeRemoved()
+        {
+            var groups = new[]
+            {
+                new VariablesExpression{ Factor = 1, Variable = "x" },
+                new VariablesExpression{ Factor = -1, Variable = "x" }
+            };
+            Assert.AreEqual("0=0", RenderWithBaseAsserts(groups));
+        }
+
+        private string RenderWithBaseAsserts(IEnumerable<VariablesExpression> groups)
         {
             var result = renderer.Render(groups);
             Assert.IsFalse(string.IsNullOrWhiteSpace(result));

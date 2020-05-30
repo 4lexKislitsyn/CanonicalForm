@@ -135,14 +135,8 @@ namespace CanonicalForm.ConsoleApp
                 return poolProvider.Create(new StringBuilderPooledObjectPolicy());
             });
 
-            services.AddTransient<IParenthesisRemover, PolishNotaionParenthesisRemover>();
-            // TODO : move to another class
-            services.AddSingleton<IVariableExpressionFactory, RegexGroupSearcher>();
+            services.AddSingleton<IVariableExpressionFactory, RegexVariableExpressionFactory>();
             services.AddTransient<IExpressionSearcher, ReversePolishSearcher>();
-            //services.AddTransient<IExpressionSearcher, CompositeGroupSearcher>(provider =>
-            //{
-            //    return new CompositeGroupSearcher(provider.GetRequiredService<IParenthesisRemover>(), new RegexGroupSearcher());
-            //});
             services.AddTransient<IExpressionsRenderer, GroupsRenderer>();
 
             services.AddSingleton<CanonicalFormulaFormer>();
