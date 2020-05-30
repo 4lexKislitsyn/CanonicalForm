@@ -13,7 +13,7 @@ namespace CoreTests
 {
     public class GroupsRendererTests
     {
-        private readonly ObjectPool<StringBuilder> pool = Extensions.CreatePool();
+        private readonly ObjectPool<StringBuilder> pool = SharedMethods.CreatePool();
         private GroupsRenderer renderer;
 
         [SetUp]

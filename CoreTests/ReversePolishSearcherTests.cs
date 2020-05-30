@@ -16,7 +16,7 @@ namespace CoreTests
         [SetUp]
         public void InintSearcher()
         {
-            searcher = new ReversePolishSearcher(Extensions.CreatePool(), new RegexVariableExpressionFactory());
+            searcher = new ReversePolishSearcher(SharedMethods.CreatePool(), new RegexVariableExpressionFactory());
         }
 
         [Test]
