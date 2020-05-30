@@ -42,14 +42,33 @@ namespace CanonicalForm.ConsoleApp
             _cancelationTokenSource.Cancel();
         }
 
+        /// <summary>
+        /// Method to transform files passed in command line arguments.
+        /// </summary>
+        /// <param name="fileNames"></param>
+        /// <returns></returns>
         private static async Task TransformFiles(string[] fileNames)
         {
             Console.WriteLine("File processing starts...");
             var former = _provider.GetRequiredService<CanonicalFormulaFormer>();
-            foreach (var path in fileNames.Where(x=> File.Exists(x)))
+            foreach (var path in fileNames)
             {
                 try
                 {
+                    var isInvalidPath = string.IsNullOrWhiteSpace(path)
+                        || path.IndexOfAny(Path.GetInvalidPathChars()) >= 0;
+                    if (isInvalidPath)
+                    {
+                        Console.WriteLine($"Path is invalid ({path}). File will be skipped.");
+                        continue;
+                    }
+
+                    if (!File.Exists(path))
+                    {
+                        Console.WriteLine($"File was not found : {path}");
+                        continue;
+                    }
+
                     var lines = await File.ReadAllLinesAsync(path, _cancelationTokenSource.Token);
                     if (lines.Length == 0)
                     {
@@ -108,11 +127,14 @@ namespace CanonicalForm.ConsoleApp
 
             if (!_cancelationTokenSource.IsCancellationRequested)
             {
-                Console.WriteLine("Press any key for exit...");
+                Console.WriteLine("Files operating finished. Press any key for exit...");
                 Console.ReadKey();
             }
         }
 
+        /// <summary>
+        /// Method to handle interactive mode.
+        /// </summary>
         private static void InteractiveTransform()
         {
             var former = _provider.GetRequiredService<CanonicalFormulaFormer>();
@@ -122,7 +144,7 @@ namespace CanonicalForm.ConsoleApp
                 var formula = Console.ReadLine();
                 try
                 {
-                    var transfromed = former.Transform(formula, false);
+                    var transfromed = former.Transform(formula, optimize: false);
                     Console.WriteLine(transfromed);
                 }
                 catch (InvalidFormulaException ex)
@@ -135,6 +157,10 @@ namespace CanonicalForm.ConsoleApp
             }
         }
 
+        /// <summary>
+        /// Configure dependency injection and build instance of <see cref="IServiceProvider"/>.
+        /// </summary>
+        /// <returns></returns>
         private static IServiceProvider ConfigureDependencyInjection()
         {
             var services = new ServiceCollection();
