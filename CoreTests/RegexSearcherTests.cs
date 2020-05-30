@@ -16,8 +16,7 @@ namespace CoreTests
         [SetUp]
         public void InintSearcher()
         {
-            //searcher = new ReversePolishSearcher(Extensions.CreatePool(), new RegexExpressionsFactory());
-            searcher = new RegexGroupSearcher(new RegexVariableExpressionFactory());
+            searcher = new ReversePolishSearcher(Extensions.CreatePool(), new RegexVariableExpressionFactory());
         }
 
         [Test]
@@ -90,10 +89,38 @@ namespace CoreTests
         [Test]
         [TestCase("-x^2 + 3.5xy + y = y^2 - xy + y", 6)]
         [TestCase("x^3- x^2y +x^-1y^2 + 3.5xy+y=y^2-xy+y", 8)]
-        public void GetValidGroups(string formula, int groupsCount)
+        public void GroupsCountTest(string formula, int groupsCount)
         {
             var result = searcher.SearchGroups(formula).ToArray();
             Assert.AreEqual(groupsCount, result.Length);
+        }
+        [Test]
+        public void OpenedParathesis_ThrowInvalidFormulaException()
+        {
+            Assert.Throws<InvalidFormulaException>(() => searcher.SearchGroups("x=(y"));
+        }
+        [Test]
+        public void NotOpenedCloseParathesis_ThrowInvalidFormulaException()
+        {
+            Assert.Throws<InvalidFormulaException>(() => searcher.SearchGroups("x)=y"));
+        }
+
+        [Test]
+        public void MultipleEqualSigns_ThrowInvalidFormulaException()
+        {
+            Assert.Throws<InvalidFormulaException>(() => searcher.SearchGroups("x=y=z"));
+        }
+
+        [Test]
+        public void OpenedOperatorFolloweByEqualSign_ThrowInvalidFormulaException()
+        {
+            Assert.Throws<InvalidFormulaException>(() => searcher.SearchGroups("x-=y"));
+        }
+
+        [Test]
+        public void EqualSignLeadFormula_ThrowInvalidFormulaException()
+        {
+            Assert.Throws<InvalidFormulaException>(() => searcher.SearchGroups("=z"));
         }
     }
 }
