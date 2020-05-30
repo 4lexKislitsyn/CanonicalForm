@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 
 namespace CoreTests
 {
-    public class RegexSearcherTests
+    public class ReversePolishSearcherTests
     {
         private IExpressionSearcher searcher;
 
@@ -102,7 +102,10 @@ namespace CoreTests
         [Test]
         public void NotOpenedCloseParathesis_ThrowInvalidFormulaException()
         {
+            // empty operators stack
             Assert.Throws<InvalidFormulaException>(() => searcher.SearchGroups("x)=y"));
+            // operators stack contains subtract operator
+            Assert.Throws<InvalidFormulaException>(() => searcher.SearchGroups("-x)=y"));
         }
 
         [Test]

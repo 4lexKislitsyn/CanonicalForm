@@ -49,8 +49,11 @@ namespace CoreTests
                 .Setup(x => x.Validate(It.IsAny<string>()))
                 .Returns(true)
                 .Verifiable();
+            var renderer = new Mock<IExpressionsRenderer>();
+            renderer.Setup(x => x.Render(It.IsAny<IEnumerable<VariablesExpression>>()))
+                .Returns(string.Empty);
 
-            var former = new CanonicalFormulaFormer(searcher.Object, Mock.Of<IExpressionsRenderer>());
+            var former = new CanonicalFormulaFormer(searcher.Object, renderer.Object);
 
             former.Transform(string.Empty);
             searcher.Verify();
@@ -61,8 +64,11 @@ namespace CoreTests
         public void SearcherNotValidator_CallSearch()
         {
             var searcher = new Mock<IExpressionSearcher>();
+            var renderer = new Mock<IExpressionsRenderer>();
+            renderer.Setup(x => x.Render(It.IsAny<IEnumerable<VariablesExpression>>()))
+                .Returns(string.Empty);
 
-            var former = new CanonicalFormulaFormer(searcher.Object, Mock.Of<IExpressionsRenderer>());
+            var former = new CanonicalFormulaFormer(searcher.Object, renderer.Object);
 
             former.Transform(string.Empty);
             searcher.Verify(x => x.SearchGroups(It.IsAny<string>()), Times.AtLeastOnce());
@@ -78,8 +84,15 @@ namespace CoreTests
 
             var former = new CanonicalFormulaFormer(searcher.Object, renderer.Object);
 
-            former.Transform(string.Empty);
+            Assert.Throws<InvalidFormulaException>(() => former.Transform(string.Empty));
             renderer.Verify(x => x.Render(null), Times.Never());
+        }
+
+        [Test]
+        public void NullRenderResult_ThrowsInvalidOperationException()
+        {
+            var former = new CanonicalFormulaFormer(Mock.Of<IExpressionSearcher>(), Mock.Of<IExpressionsRenderer>());
+            Assert.Throws<InvalidFormulaException>(() => former.Transform(string.Empty));
         }
 
     }

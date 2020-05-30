@@ -25,6 +25,12 @@ namespace CanonicalForm.Core
             {
                 throw new InvalidFormulaException(validatedFormula, "formula is null or whitespace");
             }
+
+            if (validatedFormula.IndexOf('=') < 0)
+            {
+                throw new InvalidFormulaException(validatedFormula, "must contain '=' sign");
+            }
+
             var variableBuilder = _pool.Get();
             var expressionsStack = new Stack<VariableExpressionsGroup>();
 
@@ -76,14 +82,13 @@ namespace CanonicalForm.Core
                 {
                     PushVariable();
                     char tempOperator;
+                    if (operatorsStack.Count == 0 || !operatorsStack.Contains('('))
+                    {
+                        throw new InvalidFormulaException(validatedFormula, "has parenthesis that wasn't opened");
+                    }
                     while ((tempOperator = operatorsStack.Pop()) != '(')
                     {
                         ApplyOperator(tempOperator);
-                        //polandResult.Add(tempOperator.ToString());
-                        if (operatorsStack.Count == 0)
-                        {
-                            throw new InvalidFormulaException(validatedFormula, "has parenthesis that wasn't opened");
-                        }
                     }
                 }
 
@@ -162,7 +167,7 @@ namespace CanonicalForm.Core
                     var operatorChar = operatorsStack.Pop();
                     if (operatorChar == '(')
                     {
-                        throw new InvalidFormulaException(validatedFormula, "formula has open parentheses");
+                        throw new InvalidFormulaException(validatedFormula, "all parentheses must be closed");
                     }
                     ApplyOperator(operatorChar);
                 }
