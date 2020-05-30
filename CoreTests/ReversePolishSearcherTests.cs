@@ -125,5 +125,14 @@ namespace CoreTests
         {
             Assert.Throws<InvalidFormulaException>(() => searcher.SearchGroups("=z"));
         }
+
+        /// <summary>
+        /// When transform -x to 0-x after parenthesis additional variable was added.
+        /// </summary>
+        [Test]
+        public void SubstractAfterParenthesis_NillShouldNotBeAdded()
+        {
+            Assert.DoesNotThrow(() => searcher.SearchGroups("(x)-y=z"));
+        }
     }
 }

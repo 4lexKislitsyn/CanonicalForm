@@ -8,7 +8,7 @@ namespace CanonicalForm.Core.Models
     /// <summary>
     /// Class that keeps information about variables expressions, e.g. '-5x^2y'.
     /// </summary>
-    [DebuggerDisplay("{Factor}{Variable} (max power = {MaxPower})")]
+    [DebuggerDisplay("{Factor}{Variable,nq} (max power = {MaxPower})")]
     public class VariablesExpression
     {
         /// <summary>
