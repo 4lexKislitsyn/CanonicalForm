@@ -6,11 +6,11 @@ using System.Text;
 
 namespace CanonicalForm.Core
 {
-    public class PolandNotaionParenthesisRemover : IParenthesisRemover
+    public class PolishNotaionParenthesisRemover : IParenthesisRemover
     {
         private readonly ObjectPool<StringBuilder> _pool;
 
-        public PolandNotaionParenthesisRemover(ObjectPool<StringBuilder> pool)
+        public PolishNotaionParenthesisRemover(ObjectPool<StringBuilder> pool)
         {
             _pool = pool;
         }

@@ -12,7 +12,7 @@ namespace CoreTests
 
         public ParenthesisRemoverTests()
         {
-            _remover = new PolandNotaionParenthesisRemover(Extensions.CreatePool());
+            _remover = new PolishNotaionParenthesisRemover(Extensions.CreatePool());
         }
 
         [Test]

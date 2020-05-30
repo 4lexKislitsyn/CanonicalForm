@@ -135,7 +135,7 @@ namespace CanonicalForm.ConsoleApp
                 return poolProvider.Create(new StringBuilderPooledObjectPolicy());
             });
 
-            services.AddTransient<IParenthesisRemover, PolandNotaionParenthesisRemover>();
+            services.AddTransient<IParenthesisRemover, PolishNotaionParenthesisRemover>();
             services.AddTransient<IGroupsSearcher, CompositeGroupSearcher>(provider =>
             {
                 return new CompositeGroupSearcher(provider.GetRequiredService<IParenthesisRemover>(), new RegexGroupSearcher());
