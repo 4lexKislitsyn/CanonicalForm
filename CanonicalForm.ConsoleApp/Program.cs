@@ -173,9 +173,8 @@ namespace CanonicalForm.ConsoleApp
             });
 
             services.AddSingleton<IVariableExpressionFactory, RegexVariableExpressionFactory>();
-            services.AddTransient<IExpressionSearcher, ReversePolishSearcher>();
-            services.AddTransient<IExpressionsRenderer, GroupsRenderer>();
-
+            services.AddSingleton<IExpressionSearcher, ReversePolishSearcher>();
+            services.AddSingleton<IExpressionsRenderer, GroupsRenderer>();
             services.AddSingleton<CanonicalFormulaFormer>();
 
             return services.BuildServiceProvider(true);
