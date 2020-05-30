@@ -9,23 +9,23 @@ using System.Text.RegularExpressions;
 
 namespace CanonicalForm.Core
 {
-    public class CompositeGroupSearcher : IGroupsSearcher, IFormulaValidator
+    public class CompositeGroupSearcher : IExpressionSearcher, IFormulaValidator
     {
         private readonly IParenthesisRemover _remover;
-        private readonly IGroupsSearcher _searcher;
+        private readonly IExpressionSearcher _searcher;
 
         /// <summary>
         /// Create an instance of class <see cref="CompositeGroupSearcher"/>.
         /// </summary>
         /// <param name="remover"></param>
         /// <param name="searcher"></param>
-        public CompositeGroupSearcher(IParenthesisRemover remover, IGroupsSearcher searcher)
+        public CompositeGroupSearcher(IParenthesisRemover remover, IExpressionSearcher searcher)
         {
             _remover = remover;
             _searcher = searcher;
         }
         /// <inheritdoc/>
-        public IEnumerable<GroupModel> SearchGroups(string validatedFormula)
+        public IEnumerable<VariablesExpression> SearchGroups(string validatedFormula)
         {
             if (!Validate(validatedFormula))
             {

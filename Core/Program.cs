@@ -136,11 +136,14 @@ namespace CanonicalForm.ConsoleApp
             });
 
             services.AddTransient<IParenthesisRemover, PolishNotaionParenthesisRemover>();
-            services.AddTransient<IGroupsSearcher, CompositeGroupSearcher>(provider =>
-            {
-                return new CompositeGroupSearcher(provider.GetRequiredService<IParenthesisRemover>(), new RegexGroupSearcher());
-            });
-            services.AddTransient<IGroupsRenderer, GroupsRenderer>();
+            // TODO : move to another class
+            services.AddSingleton<IVariableExpressionFactory, RegexGroupSearcher>();
+            services.AddTransient<IExpressionSearcher, ReversePolishSearcher>();
+            //services.AddTransient<IExpressionSearcher, CompositeGroupSearcher>(provider =>
+            //{
+            //    return new CompositeGroupSearcher(provider.GetRequiredService<IParenthesisRemover>(), new RegexGroupSearcher());
+            //});
+            services.AddTransient<IExpressionsRenderer, GroupsRenderer>();
 
             services.AddSingleton<CanonicalFormulaFormer>();
 

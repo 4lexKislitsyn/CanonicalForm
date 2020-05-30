@@ -8,7 +8,7 @@ using CanonicalForm.Core.Models;
 
 namespace CanonicalForm.Core
 {
-    public class GroupsRenderer : IGroupsRenderer
+    public class GroupsRenderer : IExpressionsRenderer
     {
         private readonly ObjectPool<StringBuilder> _pool;
 
@@ -17,12 +17,12 @@ namespace CanonicalForm.Core
             _pool = pool;
         }
 
-        public string Render(IEnumerable<GroupModel> groups)
+        public string Render(IEnumerable<VariablesExpression> groups)
         {
             var builder = _pool.Get();
             try
             {
-                var aggregatedGroups = groups.GroupBy(x => x.Variable).Select(x => new GroupModel
+                var aggregatedGroups = groups.GroupBy(x => x.Variable).Select(x => new VariablesExpression
                 {
                     Variable = x.Key,
                     Factor = x.Sum(z => z.Factor),

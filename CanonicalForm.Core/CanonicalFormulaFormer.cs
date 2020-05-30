@@ -9,10 +9,10 @@ namespace CanonicalForm.Core
 {
     public class CanonicalFormulaFormer
     {
-        private readonly IGroupsSearcher _groupsSearcher;
-        private readonly IGroupsRenderer _renderer;
+        private readonly IExpressionSearcher _groupsSearcher;
+        private readonly IExpressionsRenderer _renderer;
 
-        public CanonicalFormulaFormer(IGroupsSearcher groupsSearcher, IGroupsRenderer renderer)
+        public CanonicalFormulaFormer(IExpressionSearcher groupsSearcher, IExpressionsRenderer renderer)
         {
             _groupsSearcher = groupsSearcher ?? throw new ArgumentNullException(nameof(groupsSearcher));
             _renderer = renderer ?? throw new ArgumentNullException(nameof(renderer));

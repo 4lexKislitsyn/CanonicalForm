@@ -5,13 +5,13 @@ using System.Text;
 
 namespace CanonicalForm.Core.Interfaces
 {
-    public interface IGroupsSearcher
+    public interface IExpressionSearcher
     {
         /// <summary>
         /// Search expressions in formula.
         /// </summary>
         /// <param name="validatedFormula"></param>
         /// <returns></returns>
-        IEnumerable<GroupModel> SearchGroups(string validatedFormula);
+        IEnumerable<VariablesExpression> SearchGroups(string validatedFormula);
     }
 }

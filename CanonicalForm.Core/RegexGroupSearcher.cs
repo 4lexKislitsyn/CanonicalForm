@@ -9,14 +9,18 @@ using CanonicalForm.Core.Models;
 
 namespace CanonicalForm.Core
 {
-    public class RegexGroupSearcher : IGroupsSearcher, IFormulaValidator
+    public class RegexGroupSearcher : IExpressionSearcher, IFormulaValidator, IVariableExpressionFactory
     {
         private Regex _groupsRegex = new Regex(Constants.GroupRegexPattern);
         private Regex _variableRegex = new Regex(Constants.VariableRegexPattern);
         private Regex _lineFormulaRegex = new Regex($"^({Constants.GroupRegexPattern})+$");
+        private Regex _unsignedExpressionRegex = new Regex(Constants.VariableExpressionPattern);
+
+        public VariablesExpression GetVariable(string variableValue)
+            => GetVariable(_unsignedExpressionRegex.Match(variableValue));
 
         ///<inheritdoc/>
-        public IEnumerable<GroupModel> SearchGroups(string validatedFormula)
+        public IEnumerable<VariablesExpression> SearchGroups(string validatedFormula)
         {
             if (!Validate(validatedFormula))
             {
@@ -26,13 +30,9 @@ namespace CanonicalForm.Core
             var sign = 1;
             foreach (Match item in result)
             {
-                if (!item.Success)
-                {
-                    throw new Exception("Invalid formula");
-                }
+                var variable = GetVariable(item);
 
                 var operatorValue = item.Groups["operator"].Value;
-                var factor = item.Groups["factor"].Success ? double.Parse(item.Groups["factor"].Value.Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture) : 1;
                 switch (operatorValue)
                 {
                     case "=-":
@@ -40,27 +40,18 @@ namespace CanonicalForm.Core
                         break;
                     case "=+":
                     case "=":
-                        sign = -1; 
-                        factor = -factor;
+                        sign = -1;
+                        variable.Factor = -variable.Factor;
                         break;
                     case "-":
-                        factor *= -sign;
+                        variable.Factor *= -sign;
                         break;
                     default:
-                        factor *= sign;
+                        variable.Factor *= sign;
                         break;
                 }
 
-                var variables = item.Groups["variables"].Value;
-                var matchCollection = _variableRegex.Matches(variables);
-
-                var (variable, power) = GenerateVariable(matchCollection);
-                yield return new GroupModel
-                {
-                    Variable = variable,
-                    MaxPower = power,
-                    Factor = factor,
-                };
+                yield return variable;
             }
         }
 
@@ -68,6 +59,27 @@ namespace CanonicalForm.Core
         public bool Validate(string formula)
         {
             return !string.IsNullOrWhiteSpace(formula) && formula.Split('=').Length == 2 && _lineFormulaRegex.IsMatch(formula);
+        }
+
+        private VariablesExpression GetVariable(Match item)
+        {
+            if (!item.Success)
+            {
+                throw new Exception("Invalid formula");
+            }
+
+            var factor = item.Groups["factor"].Success ? double.Parse(item.Groups["factor"].Value.Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture) : 1;
+
+            var variables = item.Groups["variables"].Value;
+            var matchCollection = _variableRegex.Matches(variables);
+
+            var (variable, power) = GenerateVariable(matchCollection);
+            return new VariablesExpression
+            {
+                Variable = variable,
+                MaxPower = power,
+                Factor = factor,
+            };
         }
 
         /// <summary>

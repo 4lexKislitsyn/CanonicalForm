@@ -5,8 +5,8 @@ using System.Text;
 
 namespace CanonicalForm.Core.Interfaces
 {
-    public interface IGroupsRenderer
+    public interface IExpressionsRenderer
     {
-        string Render(IEnumerable<GroupModel> groups);
+        string Render(IEnumerable<VariablesExpression> groups);
     }
 }
